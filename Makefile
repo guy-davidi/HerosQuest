@@ -11,12 +11,15 @@ SRCS = main.cpp
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 
+# SFML libraries
+SFML_LIBS = -lsfml-graphics -lsfml-window -lsfml-system
+
 # Default rule
 all: $(TARGET)
 
 # Rule to build the executable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET) $(SFML_LIBS)
 
 # Rule to compile source files
 .cpp.o:
