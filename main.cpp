@@ -1,6 +1,9 @@
+#include <SFML/Graphics.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
+
+class Player;
 
 class Enemy {
 public:
@@ -8,16 +11,10 @@ public:
     int health;
     int attackPower;
 
-    Enemy(const std::string& enemyName, int enemyHealth, int enemyAttackPower) {
-        name = enemyName;
-        health = enemyHealth;
-        attackPower = enemyAttackPower;
-    }
+    Enemy(const std::string& enemyName, int enemyHealth, int enemyAttackPower)
+        : name(enemyName), health(enemyHealth), attackPower(enemyAttackPower) {}
 
-    void attack(Player& player) {
-        std::cout << name << " attacks " << player.name << " and deals " << attackPower << " damage." << std::endl;
-        player.takeDamage(attackPower);
-    }
+    void attack(Player& player);
 };
 
 class Player {
@@ -27,12 +24,8 @@ public:
     int attackPower;
     int level;
 
-    Player(const std::string& playerName, int playerHealth, int playerAttackPower) {
-        name = playerName;
-        health = playerHealth;
-        attackPower = playerAttackPower;
-        level = 1;
-    }
+    Player(const std::string& playerName, int playerHealth, int playerAttackPower)
+        : name(playerName), health(playerHealth), attackPower(playerAttackPower), level(1) {}
 
     void attack(Enemy& enemy) {
         std::cout << name << " attacks " << enemy.name << " and deals " << attackPower << " damage." << std::endl;
@@ -55,38 +48,70 @@ public:
     }
 };
 
+void Enemy::attack(Player& player) {
+    std::cout << name << " attacks " << player.name << " and deals " << attackPower << " damage." << std::endl;
+    player.takeDamage(attackPower);
+}
+
 int main() {
     Player player("Player1", 100, 10);
 
     std::vector<Enemy> enemies;
-    enemies.push_back(Enemy("Enemy1", 50, 5));
-    enemies.push_back(Enemy("Enemy2", 70, 8));
-    enemies.push_back(Enemy("Enemy3", 60, 7));
+    enemies.emplace_back("Enemy1", 50, 5);
+    enemies.emplace_back("Enemy2", 70, 8);
+    enemies.emplace_back("Enemy3", 60, 7);
 
     std::cout << "=== Game Start ===" << std::endl;
 
-    for (const auto& enemy : enemies) {
-        std::cout << "=== New Enemy: " << enemy.name << " ===" << std::endl;
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Game");
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf")) {
+        std::cout << "Failed to load font." << std::endl;
+        return 1;
+    }
 
-        while (player.isAlive() && enemy.health > 0) {
-            player.attack(enemy);
-            if (enemy.health <= 0) {
-                std::cout << "Player defeated " << enemy.name << "!" << std::endl;
-                player.levelUp();
-                break;
-            }
+    sf::Text text("", font, 24);
+    text.setPosition(10, 10);
 
-            enemy.attack(player);
-            if (player.health <= 0) {
-                std::cout << enemy.name << " defeated the player!" << std::endl;
-                break;
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
             }
         }
 
-        std::cout << std::endl;
-    }
+        window.clear(sf::Color::White);
 
-    std::cout << "=== Game Over ===" << std::endl;
+        std::string gameInfo;
+
+        for (auto& enemy : enemies) {
+            gameInfo += "=== New Enemy: " + enemy.name + " ===\n";
+
+            while (player.isAlive() && enemy.health > 0) {
+                player.attack(enemy);
+                if (enemy.health <= 0) {
+                    gameInfo += "Player defeated " + enemy.name + "!\n";
+                    player.levelUp();
+                    break;
+                }
+
+                enemy.attack(player);
+                if (player.health <= 0) {
+                    gameInfo += enemy.name + " defeated the player!\n";
+                    break;
+                }
+            }
+
+            gameInfo += "\n";
+        }
+
+        gameInfo += "=== Game Over ===\n";
+
+        text.setString(gameInfo);
+        window.draw(text);
+        window.display();
+    }
 
     return 0;
 }
