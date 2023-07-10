@@ -10,9 +10,13 @@ public:
     std::string name;
     int health;
     int attackPower;
+    sf::RectangleShape shape;
 
     Enemy(const std::string& enemyName, int enemyHealth, int enemyAttackPower)
-        : name(enemyName), health(enemyHealth), attackPower(enemyAttackPower) {}
+        : name(enemyName), health(enemyHealth), attackPower(enemyAttackPower) {
+            shape.setSize(sf::Vector2f(50, 50));
+            shape.setFillColor(sf::Color::Red);
+        }
 
     void attack(Player& player);
 };
@@ -23,9 +27,13 @@ public:
     int health;
     int attackPower;
     int level;
+    sf::RectangleShape shape;
 
     Player(const std::string& playerName, int playerHealth, int playerAttackPower)
-        : name(playerName), health(playerHealth), attackPower(playerAttackPower), level(1) {}
+        : name(playerName), health(playerHealth), attackPower(playerAttackPower), level(1) {
+            shape.setSize(sf::Vector2f(50, 50));
+            shape.setFillColor(sf::Color::Green);
+        }
 
     void attack(Enemy& enemy) {
         std::cout << name << " attacks " << enemy.name << " and deals " << attackPower << " damage." << std::endl;
@@ -83,33 +91,19 @@ int main() {
 
         window.clear(sf::Color::White);
 
-        std::string gameInfo;
-
         for (auto& enemy : enemies) {
-            gameInfo += "=== New Enemy: " + enemy.name + " ===\n";
+            enemy.shape.move(-1.f, 0.f); // Move enemies to the left
 
-            while (player.isAlive() && enemy.health > 0) {
-                player.attack(enemy);
-                if (enemy.health <= 0) {
-                    gameInfo += "Player defeated " + enemy.name + "!\n";
-                    player.levelUp();
-                    break;
-                }
+            window.draw(enemy.shape);
 
-                enemy.attack(player);
-                if (player.health <= 0) {
-                    gameInfo += enemy.name + " defeated the player!\n";
-                    break;
-                }
+            if (player.shape.getGlobalBounds().intersects(enemy.shape.getGlobalBounds())) {
+                player.takeDamage(enemy.attackPower);
             }
-
-            gameInfo += "\n";
         }
 
-        gameInfo += "=== Game Over ===\n";
+        player.shape.setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
 
-        text.setString(gameInfo);
-        window.draw(text);
+        window.draw(player.shape);
         window.display();
     }
 
