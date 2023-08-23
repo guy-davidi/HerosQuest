@@ -26,4 +26,3 @@ The "Game Project" is a basic game implemented in C++ using SFML library. It fea
 
    ```bash
    git clone https://github.com/guy-davidi/HerosQuest
-   
